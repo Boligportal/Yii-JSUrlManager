@@ -1,6 +1,7 @@
 {
   "name": "ains/Yii-JSUrlManager",
   "description": "Yii extension providing a Javascript implementation of the UrlManager. Forked from ains/Yii-JSUrlManager",
+  "version": "1.0.0",
   "require": {
     "yiisoft/yii": "1.1.15"
   }
