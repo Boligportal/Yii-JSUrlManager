@@ -1,0 +1,7 @@
+{
+  "name": "boligportal/Yii-JSUrlManager",
+  "description": "Yii extension providing a Javascript implementation of the UrlManager. Forked from ains/Yii-JSUrlManager",
+  "require": {
+    "yiisoft/yii": "1.1.15"
+  }
+}
