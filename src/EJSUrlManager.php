@@ -31,7 +31,7 @@ class EJSUrlManager extends CApplicationComponent {
 		$routesFile = "JsUrlRoutes.{$hash}.js";
 
 		if (!file_exists($publishPath .'/' . $routesFile)) {
-			$baseUrl = Yii::app()->getRequest()->getBaseUrl();
+			$baseUrl = $urlManager->baseUrl;
 			$scriptUrl = Yii::app()->getRequest()->getScriptUrl();
 			$hostInfo = Yii::app()->getRequest()->getHostInfo();
 
