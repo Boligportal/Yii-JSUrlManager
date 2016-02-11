@@ -1,8 +1,6 @@
 <?php
-class EJSUrlManager extends CApplicationComponent
-{
-    public function init()
-    {
+class EJSUrlManager extends CApplicationComponent {
+    public function init() {
         parent::init();
         $urlManager = Yii::app()->urlManager;
 
@@ -18,30 +16,44 @@ class EJSUrlManager extends CApplicationComponent
 
         $encodedVars = CJSON::encode($managerVars);
 
-        $asset = Yii::app()->assetManager->publish(
-            dirname(__FILE__).'/assets/js',
-            true,
-            -1
-        );
+        /** @var CAssetManager $assetManager */
+        $assetManager = clone Yii::app()->assetManager;
+        $assetManager->linkAssets = false;
 
-        $cs = Yii::app()->getClientScript();
+        // set paths
+        $assetsPath = dirname(__FILE__) . '/assets/js';
+        $publishUrl  = $assetManager->publish($assetsPath, false, -1);
+        $publishPath = $assetManager->getPublishedPath($assetsPath);
 
-        $baseUrl = Yii::app()->getRequest()->getBaseUrl();
-        $scriptUrl = Yii::app()->getRequest()->getScriptUrl();
-        $hostInfo = Yii::app()->getRequest()->getHostInfo();
+        // create hash
+        $hash = substr(md5($encodedVars), 0, 10);
+        $routesFile = "JsUrlRoutes.{$hash}.js";
 
-        $cs->registerScriptFile($asset . '/Yii.UrlManager.min.js', CClientScript::POS_HEAD);
-        $cs->registerScript(
-            "yiijs.create.js",
-            "var Yii = Yii || {}; Yii.app = {scriptUrl: '{$scriptUrl}',baseUrl: '{$baseUrl}',
-            hostInfo: '{$hostInfo}'};
-            Yii.app.urlManager = new UrlManager({$encodedVars});
-            Yii.app.createUrl = function(route, params, ampersand)  {
-            return this.urlManager.createUrl(route, params, ampersand);};"
-            ,
-            CClientScript::POS_HEAD
-        );
+        if (!file_exists($publishPath .'/' . $routesFile)) {
+            $baseUrl = Yii::app()->getRequest()->getBaseUrl();
+            $scriptUrl = Yii::app()->getRequest()->getScriptUrl();
+            $hostInfo = Yii::app()->getRequest()->getHostInfo();
 
+            $data = <<< ROUTES_DATA
+                var Yii = Yii || {};
+                Yii.app = {scriptUrl: '{$scriptUrl}',baseUrl: '{$baseUrl}', hostInfo: '{$hostInfo}'};
+                Yii.app.urlManager = new UrlManager({$encodedVars});
+                Yii.app.createUrl = function(route, params, ampersand)  {
+                return this.urlManager.createUrl(route, params, ampersand);};
+ROUTES_DATA;
+
+            // save to dictionary file
+            if (!file_put_contents($publishPath . '/' . $routesFile, $data)) {
+                Yii::log('Error: Could not write dictionary file', 'trace', 'JsUrlManager');
+                return null;
+            }
+        }
+
+        Yii::app()->getClientScript()->addPackage('JsUrlManager', [
+            'baseUrl' => $publishUrl,
+            'js' => ['Yii.UrlManager.min.js', $routesFile],
+        ]);
+
+        Yii::app()->getClientScript()->registerPackage('JsUrlManager');
     }
-
 }
