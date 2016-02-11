@@ -21,8 +21,7 @@ class EJSUrlManager extends CApplicationComponent
         $asset = Yii::app()->assetManager->publish(
             dirname(__FILE__).'/assets/js',
             true,
-            -1,
-            YII_DEBUG
+            -1
         );
 
         $cs = Yii::app()->getClientScript();
